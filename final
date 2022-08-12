@@ -17,7 +17,6 @@ struct Node
 	char c;
 	struct Node *next;
 };
-struct node *head = NULL;
 
 /*
 Hulpfunctie -- DO NOT TOUCH!
@@ -122,28 +121,6 @@ list_to_node( {'c', {'a', NULL}} ) -> "ca"
 ...
 */
 
-/*char* list_to_string( struct Node *node )
-{
-    int i;
-    char* str[list_length(node)];
-    char output = malloc(str[list_length(node)]);
-	if(node != NULL)
-	{
-		struct Node* current = node;
-		for(i = 0; str[i]; i++);  
-		{
-			str[i] = (*current).c;
-			current = current->next;
- 		}
- 		printf("%d", str);
-		return str;
-	}
-	else
-	{
-		return "";
-	}
-}*/
-
 char* list_to_string( struct Node *node )
 {
 	if(node != NULL)
@@ -219,7 +196,7 @@ De return-value is de eerste node van de lijst.
 
 struct Node *insert_list( struct Node *list, struct Node *node, int i )
 {
-	if(-1 < i <= list_length(list))
+	if(i > -1 && i <= list_length(list))
 	{
 		struct Node* current = &list[i-1];
 		struct Node* tmp = current->next;
@@ -233,6 +210,7 @@ struct Node *insert_list( struct Node *list, struct Node *node, int i )
 		return list;
 	}
 }
+
 /*
 Verwissel twee nodes (op positie i en j) in de gelinkte lijst (gebruik opnieuw zero-based indexing).
 Laat de lijst ongewijzigd als i of j geen geldige positie is (bv. als positie i of j buiten de lijst valt).
@@ -241,7 +219,7 @@ De return-value is de eerste node van de lijst.
 
 struct Node *swap_list( struct Node *list, int i, int j )
 {
-	if(-1 < i <= list_length(list) || -1 < j <= list_length(list)){
+	if(i > -1 && i <= list_length(list) || j > -1 && j <= list_length(list)){
 		//i en/of j is geen geldige index
 		struct Node* tmp = &list[i];
 		list[i] = list[j];
@@ -265,14 +243,14 @@ struct Node *reverse_list( struct Node *node )
 	    struct Node* next = NULL;
 	    while (current != NULL) {
 		// Store next
-		    next = current->next;
+		next = current->next;
 
 		// Reverse current node's pointer
-		    current->next = prev;
+		current->next = prev;
 
 		// Move pointers one position ahead.
-		    prev = current;
-		    current = next;
+		prev = current;
+		current = next;
 	    }
 	    node = prev;
 	    return node;
