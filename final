@@ -53,9 +53,10 @@ Je mag er vanuit gaan dat dit getal tussen 0 t.e.m. 9 ligt.
 unsigned int search_int( char *string, unsigned int number )
 {
 	char numberChar[2]; 
-	sprintf(numberChar, "%d", number);
+	sprintf(numberChar, "%d", number); 
 /*Error by compiler gaf aan output tussen 2-12 bytes, 
 bij testen van grootte gaf 2 geen output error meer */
+/*sprintf zal typecasten van int naar string om vergelijking mogelijk te maken*/
 	int counter = 0;
 	int i;
     for(i = 0; string[i]; i++)  
@@ -126,13 +127,15 @@ char* list_to_string( struct Node *node )
 	if(node != NULL)
 	{
 	    int i;
-        char* str[list_length(node)];
+        char str[list_length(node)];
 		struct Node* current = node;
-		for(i = 0; str[i]; i++);  
+		for(i = 0; i < list_length(node); i++)
 		{
-			str[i] = (*current).c;
+			str[i] = current->c;
 			current = current->next;
  		}
+ 		str[i] = '\0';
+ 		//printf(str);
 		return str;
 	}
 	else
@@ -149,11 +152,11 @@ Geef de gehele lijst terug vrij.
 void free_list( struct Node *node )
 {
   	while (node != NULL)
-    	{
-    	    struct Node* tmp = node;
-       		node = node->next;
-       		free(tmp);
-    	}
+    {
+    	struct Node* tmp = node;
+       	node = node->next;
+       	free(tmp);
+	}
 }
 
 /*
@@ -163,10 +166,10 @@ Maakt een nieuwe node aan met het gegeven karakter.
 struct Node* create_node( char c )
 {
 	struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+	//typecast naar node struct
 	newNode->c = c;
 	return newNode;
 }
-
 
 /*
 Voeg een nieuwe node achteraan een gelinkte lijst toe.
@@ -175,17 +178,27 @@ De return-value is de eerste node van de lijst.
 
 struct Node* append_list( struct Node *list, struct Node *node )
 {
-	struct Node* current = list;
-	while (1) {
-	    //1 & 0 gebruikt voor true false --> while(true) 
+    if(list != NULL)
+    {
+    	struct Node* current = list;
+    	while (1) {
+    	    //1 & 0 gebruikt voor true false --> while(true) 
             if(current->next == NULL)
             {
                 current->next = node;
                 break;
             }
-            current = current->next;
-        };
-	return list;
+            else
+            {
+                current = current->next;
+            }
+        }
+    	return list;
+    }
+    else
+    {
+       return node; 
+    }
 }
 
 /*
@@ -196,19 +209,25 @@ De return-value is de eerste node van de lijst.
 
 struct Node *insert_list( struct Node *list, struct Node *node, int i )
 {
-	if(i > -1 && i <= list_length(list))
+	if(list != NULL)
 	{
-		struct Node* current = &list[i-1];
-		struct Node* tmp = current->next;
-		current->next = node;
-		node->next = tmp;
-		return list;
+    	if(i > -1 && i <= list_length(list))
+    	{
+    		struct Node* current = &list[i-1];
+    		struct Node* tmp = current->next;
+    		current->next = node;
+    		node->next = tmp;
+    		return list;
+    	}
+    	else
+    	{
+    		return list;
+    	}
 	}
-	else
-	{
-		//i is geen geldige index
-		return list;
-	}
+    else
+    {
+        return node;
+    }
 }
 
 /*
@@ -219,18 +238,42 @@ De return-value is de eerste node van de lijst.
 
 struct Node *swap_list( struct Node *list, int i, int j )
 {
-	if(i > -1 && i <= list_length(list) || j > -1 && j <= list_length(list)){
-		//i en/of j is geen geldige index
-		struct Node* tmp = &list[i];
-		list[i] = list[j];
-		list[j] = *tmp;
-		return list;
-	}
-	else
-	{
-		return list;
-	}
+    if(list != NULL)
+    {
+    	if(i > -1 && i <= list_length(list) - 1 || j > -1 && j <= list_length(list) - 1)
+    	{
+    		struct Node* prev1 = NULL;
+            struct Node* node1 = list;
+            for(int k = 0; k < i; k++)
+            {
+              prev1 = node1;
+              node1 = node1->next;
+            }
+            struct Node* prev2 = NULL;
+            struct Node* node2 = list;
+            for(int k = 0; k < j; k++)
+            {
+              prev2 = node2;
+              node2 = node2->next;
+            }
+            struct Node* tmp = node2;
+            prev1->next = node2;
+            node2->next = node1->next;
+            prev2->next = node1;
+            node1->next = tmp->next;
+            return list;
+    	}
+    	else
+    	{
+    		return list;
+    	}
+    }
+    /*else
+    {
+        
+    }*/
 }
+
 
 /*
 Gegeven een pointer naar een enkelvoudig gelinkte lijst, keer deze om.
@@ -241,16 +284,17 @@ struct Node *reverse_list( struct Node *node )
 	    struct Node* prev = NULL;
 	    struct Node* current = node;
 	    struct Node* next = NULL;
-	    while (current != NULL) {
+	    while (current != NULL) 
+	    {
 		// Store next
-		next = current->next;
+		    next = current->next;
 
 		// Reverse current node's pointer
-		current->next = prev;
+		    current->next = prev;
 
 		// Move pointers one position ahead.
-		prev = current;
-		current = next;
+		    prev = current;
+		    current = next;
 	    }
 	    node = prev;
 	    return node;
@@ -346,11 +390,15 @@ int main( int argc, char **argv )
 	check( node != NULL && node->next->next != NULL && node->next->next->c == 'i', __FILE__, __LINE__ );
 
 	printf( "== swap_list ==\n" );
+	printf("check0");
 	node = swap_list( node, 1, 2);
+	printf("check1");
 	check( strcmp( ( str = list_to_string( node ) ) == NULL ? "" : str, "hio" ) == 0, __FILE__, __LINE__ );
 	node = swap_list( node, 0, 2);
+	printf("check2");
 	check( strcmp( ( str = list_to_string( node ) ) == NULL ? "" : str, "oih" ) == 0, __FILE__, __LINE__ );
 	node = swap_list( node, 0, 3);
+	printf("check3");
 	check( strcmp( ( str = list_to_string( node ) ) == NULL ? "" : str, "oih" ) == 0, __FILE__, __LINE__ );
 
 	printf( "== reverse_list ==\n" );
